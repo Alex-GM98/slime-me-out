@@ -6,6 +6,13 @@ let gooPerClick = 1;
 let gooPerSecond = 0;
 let slimeSouls = 0;
 let companionCount = 0;
+let currentBiome = 0;
+
+const biomes = [
+  { id: 'forest', name: 'Mystical Forest', bg: '/bg.png', slime: '/slime_transparent.png', threshold: 0, costMult: 1, prodMult: 1 },
+  { id: 'volcano', name: 'Volcanic Underworld', bg: '/volcano_bg.png', slime: '/magma_slime_transparent.png', threshold: 10000000, costMult: 10, prodMult: 50 },
+  { id: 'void', name: 'Cosmic Void', bg: '/cosmic_bg.png', slime: '/cosmic_slime_transparent.png', threshold: 1000000000, costMult: 100, prodMult: 2500 }
+];
 
 // Base Data for prestige resets
 const baseGenerators = [
@@ -42,7 +49,10 @@ const baseSkills = [
   { id: 'skill-sage', name: 'Great Sage', desc: 'Global x3', cost: 10, purchased: false },
   { id: 'skill-raphael', name: 'Lord of Wisdom, Raphael', desc: 'Global x5', cost: 25, purchased: false, req: 'skill-sage' },
   { id: 'skill-ciel', name: 'Manas: Ciel', desc: 'Global x10', cost: 100, purchased: false, req: 'skill-raphael' },
-  { id: 'skill-azathoth', name: 'Void God Azathoth', desc: 'Global x100', cost: 500, purchased: false, req: 'skill-ciel' }
+  { id: 'skill-azathoth', name: 'Void God Azathoth', desc: 'Global x100', cost: 500, purchased: false, req: 'skill-ciel' },
+  
+  // Auto Clicker
+  { id: 'skill-autoclick', name: 'Auto-Battle Mode', desc: 'Auto-clicks 5 times a sec', cost: 50, purchased: false }
 ];
 
 // Current State Data
@@ -64,12 +74,14 @@ const skillsTab = document.getElementById('skills-tab');
 const dialogueBox = document.getElementById('dialogue-box');
 const dialogueText = document.getElementById('dialogue-text');
 const prestigeBtn = document.getElementById('prestige-btn');
+const travelBtn = document.getElementById('travel-btn');
 const soulsContainer = document.getElementById('souls-container');
 const soulsAmountEl = document.getElementById('souls-amount');
 const skillTreeTabBtn = document.getElementById('skill-tree-tab-btn');
+const backgroundEl = document.getElementById('background');
 
-// Utility: Format numbers
 function formatNumber(num) {
+  if (num >= 1000000000) return (num / 1000000000).toFixed(2) + 'B';
   if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
   if (num >= 1000) return (num / 1000).toFixed(1) + 'k';
   return Math.floor(num).toString();
@@ -79,16 +91,14 @@ function calculatePrestigeSouls() {
   return Math.floor(Math.cbrt(goo / 10000));
 }
 
-// Update Companions UI
 function updateCompanions() {
   const targetSlimes = Math.min(companionCount, 15);
   
   while (companionsContainer.children.length < targetSlimes) {
     const img = document.createElement('img');
-    img.src = '/slime_transparent.png';
+    img.src = biomes[currentBiome].slime;
     img.className = 'mini-slime';
     
-    // Each companion gets a random color hue
     const randomHue = Math.floor(Math.random() * 360);
     img.style.filter = `hue-rotate(${randomHue}deg) drop-shadow(0 0 10px rgba(16, 185, 129, 0.4))`;
     img.style.animationDelay = `${Math.random() * 2}s`;
@@ -101,7 +111,6 @@ function updateCompanions() {
   }
 }
 
-// Update UI
 function updateUI() {
   gooAmountEl.textContent = formatNumber(goo);
   gooPerSecEl.textContent = formatNumber(gooPerSecond);
@@ -118,27 +127,42 @@ function updateUI() {
     prestigeBtn.classList.add('hidden');
   }
 
+  // Biome Travel Logic
+  const nextBiome = biomes[currentBiome + 1];
+  if (nextBiome && goo >= nextBiome.threshold) {
+    travelBtn.classList.remove('hidden');
+    document.getElementById('travel-btn-text').textContent = `Travel to ${nextBiome.name}`;
+  } else {
+    travelBtn.classList.add('hidden');
+  }
+
   if (slimeSouls > 0) {
     soulsContainer.classList.remove('hidden');
     skillTreeTabBtn.classList.remove('hidden');
   }
 
-  // Check Rimuru upgrade
+  backgroundEl.style.backgroundImage = `url('${biomes[currentBiome].bg}')`;
+
   const upgRimuru = upgrades.find(u => u.id === 'upg-rimuru');
   if (upgRimuru && upgRimuru.purchased) {
-    // Turn the main slime into Rimuru (Blue hue)
+    mainSlimeImg.src = '/slime_transparent.png'; // Rimuru is base slime tinted
     mainSlimeImg.style.filter = 'hue-rotate(200deg) drop-shadow(0 0 20px rgba(59, 130, 246, 0.8))';
+    dialoguePortrait.src = '/slime_transparent.png';
     dialoguePortrait.style.filter = 'hue-rotate(200deg)';
   } else {
+    mainSlimeImg.src = biomes[currentBiome].slime;
     mainSlimeImg.style.filter = 'drop-shadow(0 0 20px rgba(16, 185, 129, 0.6))';
+    dialoguePortrait.src = biomes[currentBiome].slime;
     dialoguePortrait.style.filter = 'none';
   }
+
+  const biomeCostMult = biomes[currentBiome].costMult;
 
   document.querySelectorAll('.generator-item').forEach(el => {
     const id = el.dataset.id;
     const gen = generators.find(g => g.id === id);
     if (!gen) return;
-    const cost = Math.floor(gen.baseCost * Math.pow(gen.costMultiplier, gen.count));
+    const cost = Math.floor(gen.baseCost * Math.pow(gen.costMultiplier, gen.count) * biomeCostMult);
     if (goo >= cost) el.classList.remove('disabled');
     else el.classList.add('disabled');
   });
@@ -147,7 +171,7 @@ function updateUI() {
     const id = el.dataset.id;
     const upg = upgrades.find(u => u.id === id);
     if (upg && !upg.purchased) {
-      if (goo >= upg.cost) el.classList.remove('disabled');
+      if (goo >= upg.cost * biomeCostMult) el.classList.remove('disabled');
       else el.classList.add('disabled');
     }
   });
@@ -168,9 +192,10 @@ function recalculateMultipliers() {
 
   const prestigeMulti = 1 + (slimeSouls * 0.1);
   const companionMulti = 1 + (companionCount * 0.1);
+  const biomeProdMult = biomes[currentBiome].prodMult;
   
-  clickMulti *= prestigeMulti * companionMulti;
-  idleMulti *= prestigeMulti * companionMulti;
+  clickMulti *= prestigeMulti * companionMulti * biomeProdMult;
+  idleMulti *= prestigeMulti * companionMulti * biomeProdMult;
 
   const skillClick = skills.find(s => s.id === 'skill-click');
   const skillIdle = skills.find(s => s.id === 'skill-idle');
@@ -183,14 +208,12 @@ function recalculateMultipliers() {
   
   if (skillIdle && skillIdle.purchased) idleMulti *= 2;
 
-  // Rimuru Path
   const upgRimuru = upgrades.find(u => u.id === 'upg-rimuru');
   if (upgRimuru && upgRimuru.purchased) {
     clickMulti *= 10;
     idleMulti *= 10;
   }
 
-  // Anime Skill Path Multipliers
   const skillSage = skills.find(s => s.id === 'skill-sage');
   if (skillSage && skillSage.purchased) { clickMulti *= 3; idleMulti *= 3; }
   const skillRaphael = skills.find(s => s.id === 'skill-raphael');
@@ -228,8 +251,10 @@ function recalculateMultipliers() {
 }
 
 function renderShop() {
+  const biomeCostMult = biomes[currentBiome].costMult;
+
   generatorsTab.innerHTML = generators.map(gen => {
-    const cost = Math.floor(gen.baseCost * Math.pow(gen.costMultiplier, gen.count));
+    const cost = Math.floor(gen.baseCost * Math.pow(gen.costMultiplier, gen.count) * biomeCostMult);
     return `
       <div class="shop-item generator-item" data-id="${gen.id}">
         <div class="item-info">
@@ -242,7 +267,7 @@ function renderShop() {
     `;
   }).join('');
 
-  const companionCost = Math.floor(500 * Math.pow(1.5, companionCount));
+  const companionCost = Math.floor(500 * Math.pow(1.5, companionCount) * biomeCostMult);
   
   upgradesTab.innerHTML = `
     <div class="shop-item repeatable-item ${goo >= companionCost && companionCount < 15 ? '' : 'disabled'}" id="buy-companion-btn">
@@ -259,7 +284,7 @@ function renderShop() {
         <span class="item-name">${upg.name}</span>
         <span class="item-desc">${upg.desc}</span>
       </div>
-      <div class="item-cost">${formatNumber(upg.cost)} Goo</div>
+      <div class="item-cost">${formatNumber(upg.cost * biomeCostMult)} Goo</div>
     </div>
   `).join('');
 
@@ -297,7 +322,7 @@ function renderShop() {
 
 function buyCompanion() {
   if (companionCount >= 15) return;
-  const cost = Math.floor(500 * Math.pow(1.5, companionCount));
+  const cost = Math.floor(500 * Math.pow(1.5, companionCount) * biomes[currentBiome].costMult);
   if (goo >= cost) {
     goo -= cost;
     companionCount++;
@@ -310,7 +335,7 @@ function buyCompanion() {
 
 function buyGenerator(id) {
   const gen = generators.find(g => g.id === id);
-  const cost = Math.floor(gen.baseCost * Math.pow(gen.costMultiplier, gen.count));
+  const cost = Math.floor(gen.baseCost * Math.pow(gen.costMultiplier, gen.count) * biomes[currentBiome].costMult);
   if (goo >= cost) {
     goo -= cost;
     gen.count++;
@@ -322,8 +347,9 @@ function buyGenerator(id) {
 
 function buyUpgrade(id) {
   const upg = upgrades.find(u => u.id === id);
-  if (!upg.purchased && goo >= upg.cost) {
-    goo -= upg.cost;
+  const cost = Math.floor(upg.cost * biomes[currentBiome].costMult);
+  if (!upg.purchased && goo >= cost) {
+    goo -= cost;
     upg.purchased = true;
     recalculateMultipliers();
     renderShop();
@@ -345,10 +371,11 @@ function buySkill(id) {
 prestigeBtn.addEventListener('click', () => {
   const soulsToGain = calculatePrestigeSouls();
   if (soulsToGain > 0) {
-    if (confirm(`Are you sure you want to ascend? You will lose all Goo, Generators, and Upgrades, but gain ${soulsToGain} Slime Souls.`)) {
+    if (confirm(`Are you sure you want to ascend? You will lose all Goo, Generators, Upgrades, and Biome progress, but gain ${soulsToGain} Slime Souls.`)) {
       slimeSouls += soulsToGain;
       goo = 0;
       companionCount = 0;
+      currentBiome = 0;
       generators = JSON.parse(JSON.stringify(baseGenerators));
       upgrades = JSON.parse(JSON.stringify(baseUpgrades));
       recalculateMultipliers();
@@ -359,6 +386,24 @@ prestigeBtn.addEventListener('click', () => {
     }
   } else {
     alert("You need more Goo to ascend!");
+  }
+});
+
+travelBtn.addEventListener('click', () => {
+  const nextBiome = biomes[currentBiome + 1];
+  if (nextBiome && goo >= nextBiome.threshold) {
+    if (confirm(`Travel to ${nextBiome.name}? This will reset your Goo, Generators, and Upgrades, but massively scale your production in the new area.`)) {
+      goo = 0;
+      companionCount = 0;
+      currentBiome++;
+      generators = JSON.parse(JSON.stringify(baseGenerators));
+      upgrades = JSON.parse(JSON.stringify(baseUpgrades));
+      recalculateMultipliers();
+      renderShop();
+      updateUI();
+      updateCompanions();
+      showDialogue(`Welcome to the ${nextBiome.name}! Things are much more expensive here, but the Goo flows like a river.`);
+    }
   }
 });
 
@@ -385,7 +430,6 @@ function showDialogue(text, duration = 4000) {
   typeWriter();
 }
 
-// Slime chatter logic
 const slimeQuotes = [
   "Did you see that anime about reincarnating as a slime?",
   "I wish I could absorb skills like Rimuru...",
@@ -403,7 +447,6 @@ const slimeQuotes = [
 
 setInterval(() => {
   if (companionCount > 0) {
-    // Talk frequency scales with companion count (5% chance per companion every 10s)
     const chance = companionCount * 0.05;
     if (Math.random() < chance) {
       const quote = slimeQuotes[Math.floor(Math.random() * slimeQuotes.length)];
@@ -412,29 +455,37 @@ setInterval(() => {
   }
 }, 10000);
 
-// Click tracking for autoclicker detection
 const clickTimes = [];
 let autoClickerWarned = false;
 let firstClick = true;
 
-slimeBtn.addEventListener('mousedown', (e) => {
-  const now = Date.now();
-  clickTimes.push(now);
-  while(clickTimes.length > 0 && clickTimes[0] < now - 1000) {
-    clickTimes.shift();
-  }
-  
-  if (clickTimes.length > 15 && !autoClickerWarned) {
-    showDialogue("Rapha i need to feed my family", 4000);
-    autoClickerWarned = true;
-    setTimeout(() => { autoClickerWarned = false; }, 6000);
+function performClick(isAuto, e) {
+  if (!isAuto) {
+    const now = Date.now();
+    clickTimes.push(now);
+    while(clickTimes.length > 0 && clickTimes[0] < now - 1000) {
+      clickTimes.shift();
+    }
+    
+    if (clickTimes.length > 15 && !autoClickerWarned) {
+      showDialogue("Rapha i need to feed my family", 4000);
+      autoClickerWarned = true;
+      setTimeout(() => { autoClickerWarned = false; }, 6000);
+    }
   }
 
   goo += gooPerClick;
   
   const rect = slimeBtn.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
+  let x, y;
+  if (e) {
+    x = e.clientX - rect.left;
+    y = e.clientY - rect.top;
+  } else {
+    x = rect.width / 2 + (Math.random() * 80 - 40);
+    y = rect.height / 2 + (Math.random() * 80 - 40);
+  }
+
   const floater = document.createElement('div');
   floater.className = 'floating-number';
   floater.textContent = '+' + formatNumber(gooPerClick);
@@ -442,14 +493,23 @@ slimeBtn.addEventListener('mousedown', (e) => {
   floater.style.top = `${y + Math.random() * 20 - 10}px`;
   floatingContainer.appendChild(floater);
   
-  setTimeout(() => floater.remove(), 1000);
+  setTimeout(() => floater.remove(), 800);
   updateUI();
 
-  if(firstClick) {
+  if(!isAuto && firstClick) {
     showDialogue("Ouch! Keep clicking!");
     firstClick = false;
   }
-});
+}
+
+slimeBtn.addEventListener('mousedown', (e) => performClick(false, e));
+
+setInterval(() => {
+  const autoClickSkill = skills.find(s => s.id === 'skill-autoclick');
+  if (autoClickSkill && autoClickSkill.purchased) {
+    performClick(true);
+  }
+}, 200);
 
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -460,10 +520,9 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   });
 });
 
-// Save & Load
 function saveGame() {
   const save = {
-    goo, slimeSouls, companionCount, generators, upgrades, skills, lastSaveTime: Date.now()
+    goo, slimeSouls, companionCount, currentBiome, generators, upgrades, skills, lastSaveTime: Date.now()
   };
   localStorage.setItem('slimeClickerSave', JSON.stringify(save));
 }
@@ -475,6 +534,7 @@ function loadGame() {
     goo = save.goo || 0;
     slimeSouls = save.slimeSouls || 0;
     companionCount = save.companionCount || 0;
+    currentBiome = save.currentBiome || 0;
     
     generators.forEach(g => {
       const savedG = save.generators.find(sg => sg.id === g.id);
@@ -508,7 +568,6 @@ function loadGame() {
   updateCompanions();
 }
 
-// Game Loop
 let lastTime = performance.now();
 function gameLoop(currentTime) {
   const deltaTime = (currentTime - lastTime) / 1000;
@@ -521,7 +580,6 @@ function gameLoop(currentTime) {
   requestAnimationFrame(gameLoop);
 }
 
-// Init
 loadGame();
 requestAnimationFrame(gameLoop);
 setInterval(saveGame, 5000);

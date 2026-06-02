@@ -45,7 +45,8 @@ body { font-family: var(--font-main); background-color: var(--bg-dark); color: v
   padding: 20px 40px;
 }
 
-.header-left { display: flex; align-items: center; gap: 30px; }
+.header-left { display: flex; align-items: center; gap: 30px; flex-wrap: wrap; }
+.header-actions { display: flex; gap: 15px; }
 
 h1 {
   font-weight: 900; font-size: 2.5rem; letter-spacing: -1px;
@@ -55,15 +56,21 @@ h1 {
 }
 
 /* Ascend Button with Shine */
-#prestige-btn {
+#prestige-btn, #travel-btn {
   position: relative; overflow: hidden;
   background: linear-gradient(135deg, var(--accent-purple), #6366f1);
   color: white; border: none; padding: 12px 24px; border-radius: 12px;
   font-weight: 900; font-size: 1.1rem; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
   box-shadow: 0 0 20px rgba(168, 85, 247, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.4);
 }
-#prestige-btn:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 0 30px rgba(168, 85, 247, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.4); }
-#prestige-btn:active { transform: translateY(1px); }
+#travel-btn {
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+}
+#prestige-btn:hover, #travel-btn:hover { transform: translateY(-2px) scale(1.02); }
+#prestige-btn:hover { box-shadow: 0 0 30px rgba(168, 85, 247, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.4); }
+#travel-btn:hover { box-shadow: 0 0 30px rgba(245, 158, 11, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.4); }
+#prestige-btn:active, #travel-btn:active { transform: translateY(1px); }
 
 .shine {
   position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
