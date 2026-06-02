@@ -73,6 +73,12 @@ const upgradesTab = document.getElementById('upgrades-tab');
 const skillsTab = document.getElementById('skills-tab');
 const dialogueBox = document.getElementById('dialogue-box');
 const dialogueText = document.getElementById('dialogue-text');
+const dialogueSpeaker = document.getElementById('dialogue-speaker');
+const dialoguePortrait = document.getElementById('dialogue-portrait');
+const dialogueBox2 = document.getElementById('dialogue-box-2');
+const dialogueText2 = document.getElementById('dialogue-text-2');
+const dialogueSpeaker2 = document.getElementById('dialogue-speaker-2');
+const dialoguePortrait2 = document.getElementById('dialogue-portrait-2');
 const prestigeBtn = document.getElementById('prestige-btn');
 const travelBtn = document.getElementById('travel-btn');
 const soulsContainer = document.getElementById('souls-container');
@@ -408,10 +414,13 @@ travelBtn.addEventListener('click', () => {
 });
 
 let typeWriterTimeout;
-function showDialogue(text, duration = 4000) {
+let typeWriterTimeout2;
+
+function showDialogue(text, speakerName = 'Slime', duration = 4000) {
   dialogueBox.classList.remove('hidden');
   dialogueText.textContent = '';
-  
+  dialogueSpeaker.textContent = speakerName;
+  dialoguePortrait.src = biomes[currentBiome].slime;
   clearTimeout(typeWriterTimeout);
   
   let i = 0;
@@ -419,18 +428,48 @@ function showDialogue(text, duration = 4000) {
     if (i < text.length) {
       dialogueText.textContent += text.charAt(i);
       i++;
-      typeWriterTimeout = setTimeout(typeWriter, 30);
+      typeWriterTimeout = setTimeout(typeWriter, 28);
     } else {
-      typeWriterTimeout = setTimeout(() => {
-        dialogueBox.classList.add('hidden');
-      }, duration);
+      typeWriterTimeout = setTimeout(() => dialogueBox.classList.add('hidden'), duration);
     }
   }
-  
   typeWriter();
 }
 
-const slimeQuotes = [
+function showConversation(line1, line2, speaker1 = 'Slime A', speaker2 = 'Slime B') {
+  // Show first bubble
+  dialogueBox2.classList.add('hidden');
+  showDialogue(line1, speaker1, 99999); // keep open until conversation ends
+  
+  // After line1 finishes typing, show line2
+  const line1Duration = line1.length * 28 + 800;
+  clearTimeout(typeWriterTimeout2);
+  typeWriterTimeout2 = setTimeout(() => {
+    dialogueBox2.classList.remove('hidden');
+    dialogueText2.textContent = '';
+    dialogueSpeaker2.textContent = speaker2;
+    dialoguePortrait2.src = biomes[currentBiome].slime;
+    
+    let i = 0;
+    function typeWriter2() {
+      if (i < line2.length) {
+        dialogueText2.textContent += line2.charAt(i);
+        i++;
+        typeWriterTimeout2 = setTimeout(typeWriter2, 28);
+      } else {
+        // Auto-close both after response is read
+        typeWriterTimeout2 = setTimeout(() => {
+          dialogueBox.classList.add('hidden');
+          dialogueBox2.classList.add('hidden');
+        }, 4000);
+      }
+    }
+    typeWriter2();
+  }, line1Duration);
+}
+
+// Solo lines
+const slimeSoloQuotes = [
   "Did you see that anime about reincarnating as a slime?",
   "I wish I could absorb skills like Rimuru...",
   "We need more Goo for the village!",
@@ -442,18 +481,67 @@ const slimeQuotes = [
   "If I eat enough Goo, will I evolve?",
   "Is it me, or is the Great Sage ignoring my questions?",
   "Shion's cooking... terrifies me.",
-  "Tempest is the best town ever!"
+  "Tempest is the best town ever!",
+  "I wonder if Rimuru would be proud of us...",
+  "More Goo means more power. That's just science.",
+  "Every click brings us closer to becoming a True Dragon!",
+  "I've absorbed so much Goo I think I'm glowing.",
+  "Benimaru could never manage a farm like this.",
+  "With the Great Sage's help, we'll reach the top!",
+  "Souei is probably spying on us right now.",
+  "I heard Milim eats Goo for breakfast.",
+  "One day I'll evolve into a Demon Lord...",
+  "My Predator skill keeps trying to eat the Goo bucket.",
+  "Just a slime trying to make it in this world.",
+  "The Goo must flow."
 ];
 
-setInterval(() => {
-  if (companionCount > 0) {
-    const chance = companionCount * 0.05;
-    if (Math.random() < chance) {
-      const quote = slimeQuotes[Math.floor(Math.random() * slimeQuotes.length)];
-      showDialogue(quote, 5000);
-    }
+// Two-slime conversations [line1, line2, speaker1, speaker2]
+const slimeConversations = [
+  ["Have you read 'That Time I Got Reincarnated as a Slime'?", "Read it? I'm LIVING it!", "Slime A", "Slime B"],
+  ["Why do we click the big slime?", "It produces Goo. Don't question it.", "Slime A", "Slime B"],
+  ["Do you think Rimuru knows about this farm?", "He probably already named it.", "Slime A", "Slime B"],
+  ["I absorbed a rock today.", "How was it?", "Slime A", "Slime B"],
+  ["Raphael keeps calling me 'inefficient'.", "Same. I think she's right though.", "Slime A", "Slime B"],
+  ["What's your favorite flavor of Goo?", "The luminescent blue kind. You?", "Slime A", "Slime B"],
+  ["I think I'm evolving...", "Me too. I feel... rounder.", "Slime A", "Slime B"],
+  ["Rapha... I need to feed my family.", "We ALL need to feed our families. Keep clicking.", "Slime A", "Slime B"],
+  ["Should we unionize?", "Against who? The giant slime we worship?", "Slime A", "Slime B"],
+  ["Milim visited last night.", "Did she eat all the Goo again?!", "Slime A", "Slime B"],
+  ["Great Sage, what is the meaning of life?", "Insufficient data. Please click more.", "Slime A", "Great Sage"],
+  ["I heard Ciel replaced Raphael.", "They're the same entity. Read the manga.", "Slime A", "Slime B"],
+  ["Are we the good guys?", "We're slimes. We're always the good guys.", "Slime A", "Slime B"],
+  ["What happens if we reach the Cosmic Void?", "We become gods. Probably.", "Slime A", "Slime B"],
+  ["I tried to use Predator on the Goo Pump.", "Did it work?", "Slime A", "Slime B"],
+  ["I tried to use Predator on the Goo Pump.", "It exploded. But I'm stronger now.", "Slime A", "Slime B"],
+  ["This lava is HOT.", "We're fire slimes. That's literally our thing.", "Slime A", "Slime B"],
+  ["I miss the forest.", "You say that every time we travel.", "Slime A", "Slime B"]
+];
+
+let lastDialogueTime = 0;
+
+function triggerRandomDialogue() {
+  if (companionCount === 0) return;
+  
+  const now = Date.now();
+  // Base interval 6s, shrinks to 2s at max companions
+  const minInterval = Math.max(2000, 6000 - companionCount * 300);
+  if (now - lastDialogueTime < minInterval) return;
+  lastDialogueTime = now;
+
+  // Chance to trigger a conversation vs a solo line
+  const doConversation = companionCount >= 2 && Math.random() < 0.5;
+  
+  if (doConversation) {
+    const conv = slimeConversations[Math.floor(Math.random() * slimeConversations.length)];
+    showConversation(conv[0], conv[1], conv[2], conv[3]);
+  } else {
+    const quote = slimeSoloQuotes[Math.floor(Math.random() * slimeSoloQuotes.length)];
+    showDialogue(quote, 'Slime', 4000);
   }
-}, 10000);
+}
+
+setInterval(triggerRandomDialogue, 3000);
 
 const clickTimes = [];
 let autoClickerWarned = false;

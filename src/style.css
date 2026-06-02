@@ -80,12 +80,14 @@ h1 {
 @keyframes shine { 0% { left: -100%; } 20% { left: 200%; } 100% { left: 200%; } }
 
 /* Stats UI */
-.stats { display: flex; gap: 20px; }
+.stats { display: flex; gap: 20px; align-items: center; }
 .stat-pill {
   display: flex; align-items: center; gap: 15px;
   background: rgba(0, 0, 0, 0.4); padding: 10px 20px 10px 15px;
   border-radius: 50px; border: 1px solid rgba(255, 255, 255, 0.05);
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+  /* Lock width to prevent layout shift when numbers change */
+  min-width: 160px;
 }
 .stat-icon {
   display: flex; align-items: center; justify-content: center;
@@ -96,9 +98,10 @@ h1 {
 .soul-icon { color: var(--accent-purple); box-shadow: 0 0 10px rgba(168, 85, 247, 0.3); }
 .rate-icon { color: var(--accent-blue); box-shadow: 0 0 10px rgba(59, 130, 246, 0.3); }
 
-.stat-content { display: flex; flex-direction: column; }
+.stat-content { display: flex; flex-direction: column; min-width: 80px; }
 .stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; }
-.stat-value { font-size: 1.4rem; font-weight: 900; }
+/* tabular-nums prevents layout shift as digits change width */
+.stat-value { font-size: 1.4rem; font-weight: 900; font-variant-numeric: tabular-nums; letter-spacing: -0.5px; min-width: 70px; display: inline-block; }
 
 .glow-green { color: var(--accent-green); text-shadow: 0 0 15px rgba(16, 185, 129, 0.6); }
 .glow-purple { color: var(--accent-purple); text-shadow: 0 0 15px rgba(168, 85, 247, 0.6); }
@@ -140,11 +143,19 @@ h1 {
 .item-cost { font-weight: 800; color: #fbbf24; background: rgba(0, 0, 0, 0.5); padding: 6px 12px; border-radius: 8px; font-size: 0.95rem; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5); }
 .item-count { font-size: 1.8rem; font-weight: 900; color: rgba(255, 255, 255, 0.1); margin-left: 10px;}
 
-#dialogue-box { position: absolute; bottom: 40px; left: 40px; padding: 20px 30px; display: flex; align-items: center; gap: 20px; max-width: 600px; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s; z-index: 100; border-left: 4px solid var(--accent-green); }
+#dialogue-box { position: absolute; bottom: 40px; left: 40px; padding: 20px 30px; display: flex; align-items: center; gap: 20px; max-width: 580px; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s; z-index: 100; border-left: 4px solid var(--accent-green); }
 #dialogue-box.hidden { transform: translateY(150px) scale(0.9); opacity: 0; pointer-events: none; }
-#dialogue-portrait { width: 70px; height: 70px; border-radius: 50%; background: rgba(0,0,0,0.6); padding: 8px; box-shadow: 0 0 15px rgba(16, 185, 129, 0.3); } 
+#dialogue-portrait { width: 70px; height: 70px; border-radius: 50%; background: rgba(0,0,0,0.6); padding: 8px; box-shadow: 0 0 15px rgba(16, 185, 129, 0.3); flex-shrink: 0; } 
 #dialogue-content { display: flex; flex-direction: column; gap: 5px; }
-#dialogue-text { font-size: 1.15rem; line-height: 1.5; font-weight: 500;}
+#dialogue-speaker { font-size: 0.75rem; font-weight: 900; color: var(--accent-green); text-transform: uppercase; letter-spacing: 2px; }
+#dialogue-text { font-size: 1.1rem; line-height: 1.5; font-weight: 500; }
+
+/* Second speaker bubble (response) */
+#dialogue-box-2 { position: absolute; bottom: 175px; left: 160px; padding: 20px 30px; display: flex; align-items: center; gap: 20px; max-width: 500px; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.3s, opacity 0.4s 0.3s; z-index: 99; border-left: 4px solid #f59e0b; }
+#dialogue-box-2.hidden { transform: translateY(150px) scale(0.9); opacity: 0; pointer-events: none; }
+#dialogue-portrait-2 { width: 55px; height: 55px; border-radius: 50%; background: rgba(0,0,0,0.6); padding: 6px; box-shadow: 0 0 15px rgba(245, 158, 11, 0.3); flex-shrink: 0; }
+#dialogue-speaker-2 { font-size: 0.75rem; font-weight: 900; color: #f59e0b; text-transform: uppercase; letter-spacing: 2px; }
+#dialogue-text-2 { font-size: 1rem; line-height: 1.5; font-weight: 500; }
 
 /* Companions Area */
 #companions-container { position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: center; align-items: flex-end; gap: 15px; flex-wrap: wrap; padding: 0 40px; pointer-events: none; z-index: 10; }
