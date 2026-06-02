@@ -9,22 +9,22 @@ let companionCount = 0;
 let currentBiome = 0;
 
 const biomes = [
-  { id: 'forest', name: 'Mystical Forest', bg: '/bg.png', slime: '/slime_transparent.png', threshold: 0, costMult: 1, prodMult: 1 },
-  { id: 'volcano', name: 'Volcanic Underworld', bg: '/volcano_bg.png', slime: '/magma_slime_transparent.png', threshold: 10000000, costMult: 10, prodMult: 50 },
-  { id: 'void', name: 'Cosmic Void', bg: '/cosmic_bg.png', slime: '/cosmic_slime_transparent.png', threshold: 1000000000, costMult: 100, prodMult: 2500 }
+  { id: 'forest',  name: 'Mystical Forest',     bg: '/bg.png',          slime: '/slime_transparent.png',        threshold: 0,           costMult: 1,    prodMult: 1 },
+  { id: 'volcano', name: 'Volcanic Underworld',  bg: '/volcano_bg.png',  slime: '/magma_slime_transparent.png',  threshold: 10000000,    costMult: 12,   prodMult: 75 },
+  { id: 'void',    name: 'Cosmic Void',           bg: '/cosmic_bg.png',   slime: '/cosmic_slime_transparent.png', threshold: 1000000000,  costMult: 150,  prodMult: 5000 }
 ];
 
 // Base Data for prestige resets
 const baseGenerators = [
-  { id: 'goo-farmer', name: 'Goo Farmer', desc: '+1 Goo/s', baseCost: 15, costMultiplier: 1.15, count: 0, baseProduction: 1 },
-  { id: 'goo-pump', name: 'Goo Pump', desc: '+5 Goo/s', baseCost: 100, costMultiplier: 1.15, count: 0, baseProduction: 5 },
-  { id: 'goo-factory', name: 'Goo Factory', desc: '+50 Goo/s', baseCost: 1100, costMultiplier: 1.15, count: 0, baseProduction: 50 },
-  { id: 'goo-mage', name: 'Goo Mage', desc: '+200 Goo/s', baseCost: 12000, costMultiplier: 1.15, count: 0, baseProduction: 200 },
-  { id: 'slime-knight', name: 'Slime Knight', desc: '+1k Goo/s', baseCost: 80000, costMultiplier: 1.15, count: 0, baseProduction: 1000 },
-  { id: 'goo-castle', name: 'Goo Castle', desc: '+5k Goo/s', baseCost: 500000, costMultiplier: 1.15, count: 0, baseProduction: 5000 },
-  { id: 'slime-dragon', name: 'Slime Dragon', desc: '+25k Goo/s', baseCost: 4000000, costMultiplier: 1.15, count: 0, baseProduction: 25000 },
-  { id: 'demon-lord', name: 'Demon Lord Slime', desc: '+100k Goo/s', baseCost: 25000000, costMultiplier: 1.15, count: 0, baseProduction: 100000 },
-  { id: 'goo-portal', name: 'Goo Portal', desc: '+1M Goo/s', baseCost: 500000000, costMultiplier: 1.15, count: 0, baseProduction: 1000000 }
+  { id: 'goo-farmer',  name: 'Goo Farmer',      desc: '+1 Goo/s',    baseCost: 15,        costMultiplier: 1.15, count: 0, baseProduction: 1 },
+  { id: 'goo-pump',   name: 'Goo Pump',         desc: '+8 Goo/s',    baseCost: 100,       costMultiplier: 1.15, count: 0, baseProduction: 8 },
+  { id: 'goo-factory',name: 'Goo Factory',       desc: '+47 Goo/s',   baseCost: 1100,      costMultiplier: 1.15, count: 0, baseProduction: 47 },
+  { id: 'goo-mage',   name: 'Goo Mage',         desc: '+260 Goo/s',  baseCost: 12000,     costMultiplier: 1.15, count: 0, baseProduction: 260 },
+  { id: 'slime-knight',name:'Slime Knight',      desc: '+1.4k Goo/s', baseCost: 130000,    costMultiplier: 1.15, count: 0, baseProduction: 1400 },
+  { id: 'goo-castle', name: 'Goo Castle',        desc: '+7.8k Goo/s', baseCost: 1400000,   costMultiplier: 1.15, count: 0, baseProduction: 7800 },
+  { id: 'slime-dragon',name:'Slime Dragon',      desc: '+44k Goo/s',  baseCost: 20000000,  costMultiplier: 1.15, count: 0, baseProduction: 44000 },
+  { id: 'demon-lord', name: 'Demon Lord Slime',  desc: '+260k Goo/s', baseCost: 330000000, costMultiplier: 1.15, count: 0, baseProduction: 260000 },
+  { id: 'goo-portal', name: 'Goo Portal',        desc: '+1.6M Goo/s', baseCost: 5100000000,costMultiplier: 1.15, count: 0, baseProduction: 1600000 }
 ];
 
 const baseUpgrades = [
@@ -86,10 +86,16 @@ const skillTreeTabBtn = document.getElementById('skill-tree-tab-btn');
 const backgroundEl = document.getElementById('background');
 
 function formatNumber(num) {
-  if (num >= 1000000000) return (num / 1000000000).toFixed(2) + 'B';
-  if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
-  if (num >= 1000) return (num / 1000).toFixed(1) + 'k';
-  return Math.floor(num).toString();
+  if (!isFinite(num) || isNaN(num)) return '0';
+  const suffixes = [
+    '', 'k', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc',
+    'UDc', 'DDc', 'TDc', 'QaDc', 'QiDc', 'SxDc', 'SpDc', 'OcDc', 'NoDc', 'Vg'
+  ];
+  if (num < 1000) return Math.floor(num).toString();
+  const exp = Math.min(Math.floor(Math.log10(num) / 3), suffixes.length - 1);
+  const scaled = num / Math.pow(1000, exp);
+  const decimals = scaled >= 100 ? 1 : 2;
+  return scaled.toFixed(decimals) + suffixes[exp];
 }
 
 function calculatePrestigeSouls() {
