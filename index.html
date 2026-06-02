@@ -16,20 +16,46 @@
         <header id="header">
           <div class="header-left">
             <h1>Slime Me Out</h1>
-            <button id="prestige-btn" class="hidden">Ascend (Prestige)</button>
+            <button id="prestige-btn" class="hidden">
+              <span id="prestige-btn-text">Ascend (Prestige)</span>
+              <div class="shine"></div>
+            </button>
           </div>
           <div class="stats">
-            <div class="stat-box prestige-stat hidden" id="souls-container">
-              <span class="stat-label">Slime Souls</span>
-              <span id="souls-amount" class="stat-value text-purple">0</span>
+            <div class="stat-pill prestige-stat hidden" id="souls-container">
+              <div class="stat-icon soul-icon">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                  <path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/>
+                </svg>
+              </div>
+              <div class="stat-content">
+                <span class="stat-label">Slime Souls</span>
+                <span id="souls-amount" class="stat-value text-purple glow-purple">0</span>
+              </div>
             </div>
-            <div class="stat-box">
-              <span class="stat-label">Goo</span>
-              <span id="goo-amount" class="stat-value">0</span>
+            
+            <div class="stat-pill">
+              <div class="stat-icon goo-icon">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                  <path d="M12 2C8 9.5 5 13.5 5 17c0 3.866 3.134 7 7 7s7-3.134 7-7c0-3.5-3-7.5-7-15z"/>
+                </svg>
+              </div>
+              <div class="stat-content">
+                <span class="stat-label">Goo</span>
+                <span id="goo-amount" class="stat-value glow-green">0</span>
+              </div>
             </div>
-            <div class="stat-box">
-              <span class="stat-label">Goo/sec</span>
-              <span id="goo-per-sec" class="stat-value">0</span>
+            
+            <div class="stat-pill">
+              <div class="stat-icon rate-icon">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                  <path d="M13 3v8h8L11 21v-8H3l10-10z"/>
+                </svg>
+              </div>
+              <div class="stat-content">
+                <span class="stat-label">Goo/sec</span>
+                <span id="goo-per-sec" class="stat-value">0</span>
+              </div>
             </div>
           </div>
         </header>
@@ -59,9 +85,11 @@
         </aside>
 
         <!-- Dialogue System -->
-        <div id="dialogue-box" class="hidden">
+        <div id="dialogue-box" class="hidden glass-panel">
           <img src="/slime_transparent.png" id="dialogue-portrait" alt="Speaker" />
-          <div id="dialogue-text">Welcome to the forest! Click me to get started.</div>
+          <div id="dialogue-content">
+            <div id="dialogue-text"></div>
+          </div>
         </div>
       </div>
     </div>

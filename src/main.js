@@ -107,10 +107,13 @@ function updateUI() {
   gooPerSecEl.textContent = formatNumber(gooPerSecond);
   soulsAmountEl.textContent = formatNumber(slimeSouls);
   
+  document.getElementById('header').classList.add('glass-panel');
+  document.getElementById('sidebar').classList.add('glass-panel');
+  
   if (goo >= 10000 || slimeSouls > 0) {
     prestigeBtn.classList.remove('hidden');
     const soulsToGain = calculatePrestigeSouls();
-    prestigeBtn.textContent = `Ascend (+${soulsToGain} Souls)`;
+    document.getElementById('prestige-btn-text').textContent = `Ascend (+${soulsToGain} Souls)`;
   } else {
     prestigeBtn.classList.add('hidden');
   }
@@ -359,12 +362,27 @@ prestigeBtn.addEventListener('click', () => {
   }
 });
 
+let typeWriterTimeout;
 function showDialogue(text, duration = 4000) {
-  dialogueText.textContent = text;
   dialogueBox.classList.remove('hidden');
-  setTimeout(() => {
-    dialogueBox.classList.add('hidden');
-  }, duration);
+  dialogueText.textContent = '';
+  
+  clearTimeout(typeWriterTimeout);
+  
+  let i = 0;
+  function typeWriter() {
+    if (i < text.length) {
+      dialogueText.textContent += text.charAt(i);
+      i++;
+      typeWriterTimeout = setTimeout(typeWriter, 30);
+    } else {
+      typeWriterTimeout = setTimeout(() => {
+        dialogueBox.classList.add('hidden');
+      }, duration);
+    }
+  }
+  
+  typeWriter();
 }
 
 // Slime chatter logic
