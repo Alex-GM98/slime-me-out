@@ -1,0 +1,17 @@
+- `[x]` Phase 1: Foundation & Project Setup
+  - `[x]` Initialize project structure (Vite + Vanilla JS + CSS)
+  - `[x]` Setup modern CSS design system (colors, typography, animations)
+  - `[x]` Create the main "Click Target" (e.g., a cute Slime)
+  - `[x]` Implement core click logic (currency generation, floating numbers)
+- `[x]` Phase 2: The Idle Transition
+  - `[x]` Create the Shop UI
+  - `[x]` Implement "Generators" (cute companion characters that auto-click)
+  - `[x]` Implement the game loop for idle resource generation
+  - `[x]` Implement Offline Progress (localStorage based)
+- `[x]` Phase 3: Skill Tree & Prestige
+  - `[x]` Design and implement a branching Skill Tree UI
+  - `[x]` Add Prestige System (Ascension for permanent multipliers)
+- `[x]` Phase 4: Polish & Narrative
+  - `[x]` Implement a simple Dialogue Box system
+  - `[x]` Add visual polish (CSS animations, pixel art styling, micro-interactions)
+  - `[x]` Write a walkthrough of the completed game

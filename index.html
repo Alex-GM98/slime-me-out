@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Slime Me Out</title>
+  </head>
+  <body>
+    <div id="app">
+      <div id="game-container">
+        <!-- Background -->
+        <div id="background"></div>
+        
+        <!-- Header / Stats -->
+        <header id="header">
+          <div class="header-left">
+            <h1>Slime Me Out</h1>
+            <button id="prestige-btn" class="hidden">Ascend (Prestige)</button>
+          </div>
+          <div class="stats">
+            <div class="stat-box prestige-stat hidden" id="souls-container">
+              <span class="stat-label">Slime Souls</span>
+              <span id="souls-amount" class="stat-value text-purple">0</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Goo</span>
+              <span id="goo-amount" class="stat-value">0</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Goo/sec</span>
+              <span id="goo-per-sec" class="stat-value">0</span>
+            </div>
+          </div>
+        </header>
+
+        <!-- Main Click Area -->
+        <main id="main-area">
+          <div id="slime-container">
+            <img src="/slime_transparent.png" id="slime" alt="Click the slime!" draggable="false" />
+            <div id="floating-numbers-container"></div>
+          </div>
+          
+          <!-- Companions Area -->
+          <div id="companions-container"></div>
+        </main>
+
+        <!-- Sidebar / Shop & Upgrades -->
+        <aside id="sidebar">
+          <div class="tabs">
+            <button class="tab-btn active" data-tab="generators">Generators</button>
+            <button class="tab-btn" data-tab="upgrades">Upgrades</button>
+            <button class="tab-btn hidden" id="skill-tree-tab-btn" data-tab="skills">Skills</button>
+          </div>
+          
+          <div id="generators-tab" class="tab-content active"></div>
+          <div id="upgrades-tab" class="tab-content"></div>
+          <div id="skills-tab" class="tab-content"></div>
+        </aside>
+
+        <!-- Dialogue System -->
+        <div id="dialogue-box" class="hidden">
+          <img src="/slime_transparent.png" id="dialogue-portrait" alt="Speaker" />
+          <div id="dialogue-text">Welcome to the forest! Click me to get started.</div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
