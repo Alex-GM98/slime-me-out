@@ -65,7 +65,6 @@ const gooAmountEl = document.getElementById('goo-amount');
 const gooPerSecEl = document.getElementById('goo-per-sec');
 const slimeBtn = document.getElementById('slime-container');
 const mainSlimeImg = document.getElementById('slime');
-const dialoguePortrait = document.getElementById('dialogue-portrait');
 const floatingContainer = document.getElementById('floating-numbers-container');
 const companionsContainer = document.getElementById('companions-container');
 const generatorsTab = document.getElementById('generators-tab');
