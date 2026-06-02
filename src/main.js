@@ -387,7 +387,7 @@ prestigeBtn.addEventListener('click', () => {
       renderShop();
       updateUI();
       updateCompanions();
-      showDialogue(`Ascension complete! You gained ${soulsToGain} Slime Souls.`);
+      showBigSlimeDialogue(`Ascension complete! You gained ${soulsToGain} Slime Souls.`, 6000);
     }
   } else {
     alert("You need more Goo to ascend!");
@@ -407,21 +407,56 @@ travelBtn.addEventListener('click', () => {
       renderShop();
       updateUI();
       updateCompanions();
-      showDialogue(`Welcome to the ${nextBiome.name}! Things are much more expensive here, but the Goo flows like a river.`);
+      showBigSlimeDialogue(`Welcome to the ${nextBiome.name}! Things are much more expensive here, but the Goo flows like a river.`, 7000);
     }
   }
 });
 
 let typeWriterTimeout;
 let typeWriterTimeout2;
+let bigSlimeSpeaking = false;
 
-function showDialogue(text, speakerName = 'Slime', duration = 4000) {
+// Big slime speaks — silences companion chatter while active
+function showBigSlimeDialogue(text, duration = 5000) {
+  bigSlimeSpeaking = true;
+
+  // Immediately silence companion bubbles
+  clearTimeout(typeWriterTimeout);
+  clearTimeout(typeWriterTimeout2);
+  dialogueBox2.classList.add('hidden');
+
   dialogueBox.classList.remove('hidden');
+  dialogueText.textContent = '';
+  dialogueSpeaker.textContent = '👑 Big Slime';
+  dialoguePortrait.src = biomes[currentBiome].slime;
+  dialogueBox.style.borderLeftColor = '#fbbf24'; // gold accent for big slime
+
+  let i = 0;
+  function typeWriter() {
+    if (i < text.length) {
+      dialogueText.textContent += text.charAt(i);
+      i++;
+      typeWriterTimeout = setTimeout(typeWriter, 28);
+    } else {
+      typeWriterTimeout = setTimeout(() => {
+        dialogueBox.classList.add('hidden');
+        dialogueBox.style.borderLeftColor = ''; // reset accent
+        bigSlimeSpeaking = false;
+      }, duration);
+    }
+  }
+  typeWriter();
+}
+
+// Companion slime speaks (solo line)
+function showDialogue(text, speakerName = 'Slime', duration = 4000) {
+  if (bigSlimeSpeaking) return; // yield to big slime
+  dialogueBox.classList.remove('hidden');
+  dialogueBox.style.borderLeftColor = '';
   dialogueText.textContent = '';
   dialogueSpeaker.textContent = speakerName;
   dialoguePortrait.src = biomes[currentBiome].slime;
   clearTimeout(typeWriterTimeout);
-  
   let i = 0;
   function typeWriter() {
     if (i < text.length) {
@@ -436,19 +471,18 @@ function showDialogue(text, speakerName = 'Slime', duration = 4000) {
 }
 
 function showConversation(line1, line2, speaker1 = 'Slime A', speaker2 = 'Slime B') {
-  // Show first bubble
+  if (bigSlimeSpeaking) return; // yield to big slime
   dialogueBox2.classList.add('hidden');
-  showDialogue(line1, speaker1, 99999); // keep open until conversation ends
+  showDialogue(line1, speaker1, 99999);
   
-  // After line1 finishes typing, show line2
   const line1Duration = line1.length * 28 + 800;
   clearTimeout(typeWriterTimeout2);
   typeWriterTimeout2 = setTimeout(() => {
+    if (bigSlimeSpeaking) return; // big slime may have cut in
     dialogueBox2.classList.remove('hidden');
     dialogueText2.textContent = '';
     dialogueSpeaker2.textContent = speaker2;
     dialoguePortrait2.src = biomes[currentBiome].slime;
-    
     let i = 0;
     function typeWriter2() {
       if (i < line2.length) {
@@ -456,7 +490,6 @@ function showConversation(line1, line2, speaker1 = 'Slime A', speaker2 = 'Slime 
         i++;
         typeWriterTimeout2 = setTimeout(typeWriter2, 28);
       } else {
-        // Auto-close both after response is read
         typeWriterTimeout2 = setTimeout(() => {
           dialogueBox.classList.add('hidden');
           dialogueBox2.classList.add('hidden');
@@ -517,30 +550,53 @@ const slimeConversations = [
   ["I miss the forest.", "You say that every time we travel.", "Slime A", "Slime B"]
 ];
 
+// Big slime's rare quotes
+const bigSlimeQuotes = [
+  "...I feel your clicks. Keep going.",
+  "More Goo. Always more Goo.",
+  "You dare click me? ...I respect that.",
+  "My power grows with every drop.",
+  "One day we shall consume the cosmos.",
+  "Do not stop. The Void watches.",
+  "I was reincarnated for this. I am sure of it."
+];
+
 let lastDialogueTime = 0;
+let lastBigSlimeTime = 0;
 
 function triggerRandomDialogue() {
+  if (bigSlimeSpeaking) return;
   if (companionCount === 0) return;
-  
+
   const now = Date.now();
-  // Base interval 6s, shrinks to 2s at max companions
-  const minInterval = Math.max(2000, 6000 - companionCount * 300);
+  // Companions: 30s with 1 slime, scales down to 15s at 15 slimes
+  const minInterval = Math.max(15000, 30000 - companionCount * 1000);
   if (now - lastDialogueTime < minInterval) return;
   lastDialogueTime = now;
 
-  // Chance to trigger a conversation vs a solo line
-  const doConversation = companionCount >= 2 && Math.random() < 0.5;
-  
-  if (doConversation) {
+  // Companions only do conversations (no solo lines from companions)
+  if (companionCount >= 2) {
     const conv = slimeConversations[Math.floor(Math.random() * slimeConversations.length)];
     showConversation(conv[0], conv[1], conv[2], conv[3]);
   } else {
+    // Only 1 companion — do a solo line
     const quote = slimeSoloQuotes[Math.floor(Math.random() * slimeSoloQuotes.length)];
     showDialogue(quote, 'Slime', 4000);
   }
 }
 
+// Big slime speaks rarely — every 45-90 seconds
+function triggerBigSlimeDialogue() {
+  const now = Date.now();
+  const minBigInterval = 45000 + Math.random() * 45000;
+  if (now - lastBigSlimeTime < minBigInterval) return;
+  lastBigSlimeTime = now;
+  const quote = bigSlimeQuotes[Math.floor(Math.random() * bigSlimeQuotes.length)];
+  showBigSlimeDialogue(quote, 6000);
+}
+
 setInterval(triggerRandomDialogue, 3000);
+setInterval(triggerBigSlimeDialogue, 15000);
 
 const clickTimes = [];
 let autoClickerWarned = false;
@@ -555,7 +611,7 @@ function performClick(isAuto, e) {
     }
     
     if (clickTimes.length > 15 && !autoClickerWarned) {
-      showDialogue("Rapha i need to feed my family", 4000);
+      showBigSlimeDialogue("Rapha i need to feed my family", 4000);
       autoClickerWarned = true;
       setTimeout(() => { autoClickerWarned = false; }, 6000);
     }
@@ -584,7 +640,7 @@ function performClick(isAuto, e) {
   updateUI();
 
   if(!isAuto && firstClick) {
-    showDialogue("Ouch! Keep clicking!");
+    showBigSlimeDialogue("Ouch! Keep clicking!", 3000);
     firstClick = false;
   }
 }
@@ -643,11 +699,11 @@ function loadGame() {
       if (secondsOffline > 60 && gooPerSecond > 0) { 
         const gained = secondsOffline * gooPerSecond;
         goo += gained;
-        setTimeout(() => showDialogue(`Welcome back! You earned ${formatNumber(gained)} Goo while offline.`, 6000), 1000);
+        setTimeout(() => showBigSlimeDialogue(`Welcome back! You earned ${formatNumber(gained)} Goo while offline.`, 6000), 1000);
       }
     }
   } else {
-    setTimeout(() => showDialogue("Welcome to the forest! Click the slime to gather Goo.", 5000), 500);
+    setTimeout(() => showBigSlimeDialogue("Welcome to the forest! Click the slime to gather Goo.", 5000), 500);
   }
   recalculateMultipliers();
   renderShop();
